@@ -19,11 +19,11 @@ var moreThan10000 =
 
 // Node ID according to rfc4122#section-4.5
 var randomHost = crypto.randomBytes(16);
-randomHost[0] = randomHost[0] | 0x01;
+randomHost[0] = randomHost[0]! | 0x01;
 
 // randomize clockSeq initially, as per rfc4122#section-4.1.5
 var seed = crypto.randomBytes(2);
-var clockSeq = (seed[0] | (seed[1] << 8)) & 0x3fff;
+var clockSeq = (seed[0]! | (seed[1]! << 8)) & 0x3fff;
 
 // clock values
 var lastMTime = 0;
@@ -68,12 +68,12 @@ if (Buffer.allocUnsafe) {
 
 function parseMacAddress(address: string) {
     var buffer = newBufferFromSize(6);
-    buffer[0] = hex2byte[address[0] + address[1]];
-    buffer[1] = hex2byte[address[3] + address[4]];
-    buffer[2] = hex2byte[address[6] + address[7]];
-    buffer[3] = hex2byte[address[9] + address[10]];
-    buffer[4] = hex2byte[address[12] + address[13]];
-    buffer[5] = hex2byte[address[15] + address[16]];
+    buffer[0] = hex2byte[address[0]! + address[1]!]!;
+    buffer[1] = hex2byte[address[3]! + address[4]!]!;
+    buffer[2] = hex2byte[address[6]! + address[7]!]!;
+    buffer[3] = hex2byte[address[9]! + address[10]!]!;
+    buffer[4] = hex2byte[address[12]! + address[13]!]!;
+    buffer[5] = hex2byte[address[15]! + address[16]!]!;
     return buffer;
 }
 
@@ -94,11 +94,11 @@ type UUIDOptions = { clockSeq?: number; encoding?: "ascii" | "binary" | "object"
 
 type UUIDLike = string | Buffer | UUID;
 
-type UUIDCallback = (err: string, result: UUIDLike) => void;
+type UUIDCallback = (err: string | null, result: UUIDLike | null) => void;
 
 // UUID class
 class UUID {
-version: number;
+version?: number;
 variant: Check["variant"];
 ascii?: string;
 binary?: Buffer;
@@ -118,7 +118,7 @@ constructor(uuid: string | Buffer) {
 
 toString() {
     if (!this.ascii) {
-        var ascii = UUID.stringify(this.binary);
+        var ascii = UUID.stringify(this.binary!);
         this.ascii = ascii;
     }
     return this.ascii;
@@ -126,7 +126,7 @@ toString() {
 
 toBuffer() {
     if (!this.binary) {
-        this.binary = UUID.parse(this.ascii);
+        this.binary = UUID.parse(this.ascii!);
     }
     return newBufferFromBuffer(this.binary);
 }
@@ -152,7 +152,9 @@ static namespace = {
     x500: new UUID("6ba7b814-9dad-11d1-80b4-00c04fd430c8")
 }
 
-static v1(arg1: UUIDOptions | UUIDCallback, arg2?: UUIDCallback) {
+static v1(arg1: UUIDOptions): UUIDLike;
+static v1(arg1: UUIDOptions, arg2?: UUIDCallback): void;
+static v1(arg1: UUIDOptions, arg2?: UUIDCallback): UUIDLike | void {
 
     var options: UUIDOptions = arg1 || {};
     var callback = typeof arg1 === "function" ? arg1 : arg2;
@@ -181,16 +183,20 @@ static v4 = uuidRandom;
 
 static v4fast = uuidRandomFast;
 
-static v3(options: UUIDOptions | UUIDCallback, callback: UUIDCallback) {
+static v3(options: UUIDOptions): UUIDLike;
+static v3(options: UUIDOptions, callback?: UUIDCallback): void;
+static v3(options: UUIDOptions, callback?: UUIDCallback): void | UUIDLike {
     return uuidNamed("md5", 0x30, options, callback);
 }
 
-static v5(options: UUIDOptions | UUIDCallback, callback: UUIDCallback) {
+static v5(options: UUIDOptions): UUIDLike;
+static v5(options: UUIDOptions, callback?: UUIDCallback): void;
+static v5(options: UUIDOptions, callback?: UUIDCallback): void | UUIDLike {
     return uuidNamed("sha1", 0x50, options, callback);
 }
 }
 
-function error(message: string, callback: (err: string, result: null) => void) {
+function error(message: string, callback?: UUIDCallback) {
     if (callback) {
         callback(message, null);
     } else {
@@ -204,7 +210,7 @@ function parse(string: string) {
     var buffer = newBufferFromSize(16);
     var j = 0;
     for (var i = 0; i < 16; i++) {
-        buffer[i] = hex2byte[string[j++] + string[j++]];
+        buffer[i]! = hex2byte[string[j++]! + string[j++]!]!;
         if (i === 3 || i === 5 || i === 7 || i === 9) {
             j += 1;
         }
@@ -229,7 +235,7 @@ function getVariant(bits: number) {
 
 type Check = { version?: number; variant: "nil" | "ncs" | "rfc4122" | "microsoft" | "future"; format: "ascii" | "binary"; };
 
-function check(uuid: UUIDLike, offset?: number): false | Check {
+function check(uuid: string | Buffer, offset?: number): false | Check {
 
     if (typeof uuid === "string") {
         uuid = uuid.toLowerCase();
@@ -243,13 +249,12 @@ function check(uuid: UUIDLike, offset?: number): false | Check {
         }
 
         return {
-            version: (hex2byte[uuid[14] + uuid[15]] & 0xf0) >> 4,
-            variant: getVariant((hex2byte[uuid[19] + uuid[20]] & 0xe0) >> 5),
+            version: (hex2byte[uuid[14]! + uuid[15]!]! & 0xf0) >> 4,
+            variant: getVariant((hex2byte[uuid[19]! + uuid[20]!]! & 0xe0) >> 5),
             format: "ascii"
         };
     }
 
-    if (uuid instanceof Buffer) {
         offset = offset || 0;
 
         if (uuid.length < offset + 16) {
@@ -266,15 +271,14 @@ function check(uuid: UUIDLike, offset?: number): false | Check {
         }
 
         return {
-            version: (uuid[offset + 6] & 0xf0) >> 4,
-            variant: getVariant((uuid[offset + 8] & 0xe0) >> 5),
+            version: (uuid[offset + 6]! & 0xf0) >> 4,
+            variant: getVariant((uuid[offset + 8]! & 0xe0) >> 5),
             format: "binary"
         };
-    }
 }
 
 // v1
-function uuidTimeBased(nodeId: Buffer, options: UUIDOptions, callback: UUIDCallback) {
+function uuidTimeBased(nodeId: Buffer, options: UUIDOptions, callback?: UUIDCallback) {
 
     var mTime = Date.now();
     var nTime = lastNTime + 1;
@@ -319,33 +323,33 @@ function uuidTimeBased(nodeId: Buffer, options: UUIDOptions, callback: UUIDCallb
     switch (options.encoding && options.encoding[0]) {
         case "b":
         case "B":
-            buffer[10] = nodeId[0];
-            buffer[11] = nodeId[1];
-            buffer[12] = nodeId[2];
-            buffer[13] = nodeId[3];
-            buffer[14] = nodeId[4];
-            buffer[15] = nodeId[5];
+            buffer[10]! = nodeId[0]!;
+            buffer[11]! = nodeId[1]!;
+            buffer[12]! = nodeId[2]!;
+            buffer[13]! = nodeId[3]!;
+            buffer[14]! = nodeId[4]!;
+            buffer[15]! = nodeId[5]!;
             result = buffer;
             break;
         case "o":
         case "U":
-            buffer[10] = nodeId[0];
-            buffer[11] = nodeId[1];
-            buffer[12] = nodeId[2];
-            buffer[13] = nodeId[3];
-            buffer[14] = nodeId[4];
-            buffer[15] = nodeId[5];
+            buffer[10]! = nodeId[0]!;
+            buffer[11]! = nodeId[1]!;
+            buffer[12]! = nodeId[2]!;
+            buffer[13]! = nodeId[3]!;
+            buffer[14]! = nodeId[4]!;
+            buffer[15]! = nodeId[5]!;
             result = new UUID(buffer);
             break;
         default:
-            result = byte2hex[buffer[0]] + byte2hex[buffer[1]] +
-                     byte2hex[buffer[2]] + byte2hex[buffer[3]] + "-" +
-                     byte2hex[buffer[4]] + byte2hex[buffer[5]] + "-" +
-                     byte2hex[buffer[6]] + byte2hex[buffer[7]] + "-" +
-                     byte2hex[buffer[8]] + byte2hex[buffer[9]] + "-" +
-                     byte2hex[nodeId[0]] + byte2hex[nodeId[1]] +
-                     byte2hex[nodeId[2]] + byte2hex[nodeId[3]] +
-                     byte2hex[nodeId[4]] + byte2hex[nodeId[5]];
+            result = byte2hex[buffer[0]!]! + byte2hex[buffer[1]!]! +
+                     byte2hex[buffer[2]!]! + byte2hex[buffer[3]!]! + "-" +
+                     byte2hex[buffer[4]!]! + byte2hex[buffer[5]!]! + "-" +
+                     byte2hex[buffer[6]!]! + byte2hex[buffer[7]!]! + "-" +
+                     byte2hex[buffer[8]!]! + byte2hex[buffer[9]!]! + "-" +
+                     byte2hex[nodeId[0]!]! + byte2hex[nodeId[1]!]! +
+                     byte2hex[nodeId[2]!]! + byte2hex[nodeId[3]!]! +
+                     byte2hex[nodeId[4]!]! + byte2hex[nodeId[5]!]!;
             break;
     }
     if (callback) {
@@ -357,7 +361,9 @@ function uuidTimeBased(nodeId: Buffer, options: UUIDOptions, callback: UUIDCallb
 }
 
 // v3 + v5
-function uuidNamed(hashFunc: string, version: number, arg1: UUIDOptions | UUIDCallback, arg2?: UUIDCallback) {
+function uuidNamed(hashFunc: string, version: number, arg1: UUIDOptions): UUIDLike;
+function uuidNamed(hashFunc: string, version: number, arg1: UUIDOptions, arg2?: UUIDCallback): void;
+function uuidNamed(hashFunc: string, version: number, arg1: UUIDOptions, arg2?: UUIDCallback): void | UUIDLike {
 
     var options: UUIDOptions = arg1 || {};
     var callback = typeof arg1 === "function" ? arg1 : arg2;
@@ -392,32 +398,32 @@ function uuidNamed(hashFunc: string, version: number, arg1: UUIDOptions | UUIDCa
     switch (options.encoding && options.encoding[0]) {
         case "b":
         case "B":
-            buffer[6] = (buffer[6] & 0x0f) | version;
-            buffer[8] = (buffer[8] & 0x3f) | 0x80;
+            buffer[6] = (buffer[6]! & 0x0f) | version;
+            buffer[8] = (buffer[8]! & 0x3f) | 0x80;
             result = buffer;
             break;
         case "o":
         case "U":
-            buffer[6] = (buffer[6] & 0x0f) | version;
-            buffer[8] = (buffer[8] & 0x3f) | 0x80;
+            buffer[6] = (buffer[6]! & 0x0f) | version;
+            buffer[8] = (buffer[8]! & 0x3f) | 0x80;
             result = new UUID(buffer);
             break;
         default:
-            result = byte2hex[buffer[0]] + byte2hex[buffer[1]] +
-                     byte2hex[buffer[2]] + byte2hex[buffer[3]] + "-" +
-                     byte2hex[buffer[4]] + byte2hex[buffer[5]] + "-" +
-                     byte2hex[(buffer[6] & 0x0f) | version] +
-                     byte2hex[buffer[7]] + "-" +
-                     byte2hex[(buffer[8] & 0x3f) | 0x80] +
-                     byte2hex[buffer[9]] + "-" +
-                     byte2hex[buffer[10]] + byte2hex[buffer[11]] +
-                     byte2hex[buffer[12]] + byte2hex[buffer[13]] +
-                     byte2hex[buffer[14]] + byte2hex[buffer[15]];
+            result = byte2hex[buffer[0]!]! + byte2hex[buffer[1]!]! +
+                     byte2hex[buffer[2]!]! + byte2hex[buffer[3]!]! + "-" +
+                     byte2hex[buffer[4]!]! + byte2hex[buffer[5]!]! + "-" +
+                     byte2hex[(buffer[6]! & 0x0f) | version]! +
+                     byte2hex[buffer[7]!]! + "-" +
+                     byte2hex[(buffer[8]! & 0x3f) | 0x80]! +
+                     byte2hex[buffer[9]!]! + "-" +
+                     byte2hex[buffer[10]!]! + byte2hex[buffer[11]!]! +
+                     byte2hex[buffer[12]!]! + byte2hex[buffer[13]!]! +
+                     byte2hex[buffer[14]!]! + byte2hex[buffer[15]!]!;
             break;
     }
     if (callback) {
         setImmediate(function () {
-            callback(null, result);
+            callback!(null, result);
         });
     } else {
         return result;
@@ -425,15 +431,17 @@ function uuidNamed(hashFunc: string, version: number, arg1: UUIDOptions | UUIDCa
 }
 
 // v4
-function uuidRandom(arg1: UUIDOptions | UUIDCallback, arg2?: UUIDCallback) {
+function uuidRandom(arg1: UUIDOptions): UUIDLike;
+function uuidRandom(arg1: UUIDOptions, arg2?: UUIDCallback): void;
+function uuidRandom(arg1: UUIDOptions, arg2?: UUIDCallback): UUIDLike | void {
 
     var options: UUIDOptions = arg1 || {};
     var callback = typeof arg1 === "function" ? arg1 : arg2;
 
     var buffer = crypto.randomBytes(16);
 
-    buffer[6] = (buffer[6] & 0x0f) | 0x40;
-    buffer[8] = (buffer[8] & 0x3f) | 0x80;
+    buffer[6] = (buffer[6]! & 0x0f) | 0x40;
+    buffer[8] = (buffer[8]! & 0x3f) | 0x80;
 
     var result: UUIDLike;
     switch (options.encoding && options.encoding[0]) {
@@ -446,21 +454,21 @@ function uuidRandom(arg1: UUIDOptions | UUIDCallback, arg2?: UUIDCallback) {
             result = new UUID(buffer);
             break;
         default:
-            result = byte2hex[buffer[0]] + byte2hex[buffer[1]] +
-                     byte2hex[buffer[2]] + byte2hex[buffer[3]] + "-" +
-                     byte2hex[buffer[4]] + byte2hex[buffer[5]] + "-" +
-                     byte2hex[(buffer[6] & 0x0f) | 0x40] +
-                     byte2hex[buffer[7]] + "-" +
-                     byte2hex[(buffer[8] & 0x3f) | 0x80] +
-                     byte2hex[buffer[9]] + "-" +
-                     byte2hex[buffer[10]] + byte2hex[buffer[11]] +
-                     byte2hex[buffer[12]] + byte2hex[buffer[13]] +
-                     byte2hex[buffer[14]] + byte2hex[buffer[15]];
+            result = byte2hex[buffer[0]!]! + byte2hex[buffer[1]!]! +
+                     byte2hex[buffer[2]!]! + byte2hex[buffer[3]!]! + "-" +
+                     byte2hex[buffer[4]!]! + byte2hex[buffer[5]!]! + "-" +
+                     byte2hex[(buffer[6]! & 0x0f) | 0x40]! +
+                     byte2hex[buffer[7]!]! + "-" +
+                     byte2hex[(buffer[8]! & 0x3f) | 0x80]! +
+                     byte2hex[buffer[9]!]! + "-" +
+                     byte2hex[buffer[10]!]! + byte2hex[buffer[11]!]! +
+                     byte2hex[buffer[12]!]! + byte2hex[buffer[13]!]! +
+                     byte2hex[buffer[14]!]! + byte2hex[buffer[15]!]!;
             break;
     }
     if (callback) {
         setImmediate(function () {
-            callback(null, result);
+            callback!(null, result);
         });
     } else {
         return result;
@@ -475,33 +483,33 @@ function uuidRandomFast() {
     var r3 = Math.random() * 0x100000000;
     var r4 = Math.random() * 0x100000000;
 
-    return byte2hex[ r1        & 0xff] +
-           byte2hex[ r1 >>>  8 & 0xff] +
-           byte2hex[ r1 >>> 16 & 0xff] +
-           byte2hex[ r1 >>> 24 & 0xff] + "-" +
-           byte2hex[ r2 & 0xff] +
-           byte2hex[ r2 >>>  8 & 0xff] + "-" +
-           byte2hex[(r2 >>> 16 & 0x0f) | 0x40] +
-           byte2hex[ r2 >>> 24 & 0xff] + "-" +
-           byte2hex[(r3 & 0x3f) | 0x80] +
-           byte2hex[ r3 >>>  8 & 0xff] + "-" +
-           byte2hex[ r3 >>> 16 & 0xff] +
-           byte2hex[ r3 >>> 24 & 0xff] +
-           byte2hex[ r4        & 0xff] +
-           byte2hex[ r4 >>>  8 & 0xff] +
-           byte2hex[ r4 >>> 16 & 0xff] +
-           byte2hex[ r4 >>> 24 & 0xff];
+    return byte2hex[ r1        & 0xff]! +
+           byte2hex[ r1 >>>  8 & 0xff]! +
+           byte2hex[ r1 >>> 16 & 0xff]! +
+           byte2hex[ r1 >>> 24 & 0xff]! + "-" +
+           byte2hex[ r2 & 0xff]! +
+           byte2hex[ r2 >>>  8 & 0xff]! + "-" +
+           byte2hex[(r2 >>> 16 & 0x0f) | 0x40]! +
+           byte2hex[ r2 >>> 24 & 0xff]! + "-" +
+           byte2hex[(r3 & 0x3f) | 0x80]! +
+           byte2hex[ r3 >>>  8 & 0xff]! + "-" +
+           byte2hex[ r3 >>> 16 & 0xff]! +
+           byte2hex[ r3 >>> 24 & 0xff]! +
+           byte2hex[ r4        & 0xff]! +
+           byte2hex[ r4 >>>  8 & 0xff]! +
+           byte2hex[ r4 >>> 16 & 0xff]! +
+           byte2hex[ r4 >>> 24 & 0xff]!;
 }
 
 function stringify(buffer: Buffer) {
-    return byte2hex[buffer[0]]  + byte2hex[buffer[1]]  +
-           byte2hex[buffer[2]]  + byte2hex[buffer[3]]  + "-" +
-           byte2hex[buffer[4]]  + byte2hex[buffer[5]]  + "-" +
-           byte2hex[buffer[6]]  + byte2hex[buffer[7]]  + "-" +
-           byte2hex[buffer[8]]  + byte2hex[buffer[9]]  + "-" +
-           byte2hex[buffer[10]] + byte2hex[buffer[11]] +
-           byte2hex[buffer[12]] + byte2hex[buffer[13]] +
-           byte2hex[buffer[14]] + byte2hex[buffer[15]];
+    return byte2hex[buffer[0]!]!  + byte2hex[buffer[1]!]!  +
+           byte2hex[buffer[2]!]!  + byte2hex[buffer[3]!]!  + "-" +
+           byte2hex[buffer[4]!]!  + byte2hex[buffer[5]!]!  + "-" +
+           byte2hex[buffer[6]!]!  + byte2hex[buffer[7]!]!  + "-" +
+           byte2hex[buffer[8]!]!  + byte2hex[buffer[9]!]!  + "-" +
+           byte2hex[buffer[10]!]! + byte2hex[buffer[11]!]! +
+           byte2hex[buffer[12]!]! + byte2hex[buffer[13]!]! +
+           byte2hex[buffer[14]!]! + byte2hex[buffer[15]!]!;
 }
 
 export = UUID;
