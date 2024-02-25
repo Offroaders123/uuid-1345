@@ -11,8 +11,11 @@
     "uuid-v4",
     "uuid-v5"
   ],
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
+    "build": "tsc --noEmit false",
+    "dev": "tsc --watch",
     "test": "gulp test"
   },
   "author": "Julian Fleischer",

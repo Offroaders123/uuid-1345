@@ -2,12 +2,13 @@
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
+    "outDir": "./dist",
     "module": "CommonJS",
-    "target": "ESNext",
+    "target": "ES5",
     "isolatedModules": true,
     "noEmit": true,
-    // "declaration": true,
-    // "sourceMap": true,
+    "declaration": true,
+    "sourceMap": true,
     "strict": true,
     "strictNullChecks": false, // temp
     // "noImplicitOverride": true,

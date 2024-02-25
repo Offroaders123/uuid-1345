@@ -112,7 +112,7 @@ function loadMacAddress() {
  */
 
 // UUID class
-var UUID = function (/** @type {string | Buffer} */ uuid) {
+function UUID(/** @type {string | Buffer} */ uuid) {
 
     var check = UUID.check(uuid);
     if (!check) {
@@ -123,7 +123,7 @@ var UUID = function (/** @type {string | Buffer} */ uuid) {
     this.variant = check.variant;
 
     this[check.format] = /** @type {string & Buffer} */ (uuid);
-};
+}
 
 UUID.prototype.toString = function () {
     if (!this.ascii) {
