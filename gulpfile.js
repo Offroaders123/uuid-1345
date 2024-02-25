@@ -18,5 +18,5 @@ function test(cb) {
     .pipe(mocha());
 }
 
-exports.test = series(hint, test);
+exports.test = series(test);
 exports.default = exports.test;

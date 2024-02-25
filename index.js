@@ -112,7 +112,8 @@ function loadMacAddress() {
  */
 
 // UUID class
-function UUID(/** @type {string | Buffer} */ uuid) {
+class UUID {
+constructor(/** @type {string | Buffer} */ uuid) {
 
     var check = UUID.check(uuid);
     if (!check) {
@@ -125,43 +126,43 @@ function UUID(/** @type {string | Buffer} */ uuid) {
     this[check.format] = /** @type {string & Buffer} */ (uuid);
 }
 
-UUID.prototype.toString = function () {
+toString() {
     if (!this.ascii) {
         var ascii = UUID.stringify(this.binary);
         this.ascii = ascii;
     }
     return this.ascii;
-};
+}
 
-UUID.prototype.toBuffer = function () {
+toBuffer() {
     if (!this.binary) {
         this.binary = UUID.parse(this.ascii);
     }
     return newBufferFromBuffer(this.binary);
-};
+}
 
-UUID.prototype.inspect = function () {
+inspect() {
     return "UUID v" + this.version + " " + this.toString();
-};
+}
 
-UUID.stringify = stringify;
+static stringify = stringify;
 
-UUID.parse = parse;
+static parse = parse;
 
-UUID.check = check;
+static check = check;
 
 // according to rfc4122#section-4.1.7
-UUID.nil = new UUID("00000000-0000-0000-0000-000000000000");
+static nil = new UUID("00000000-0000-0000-0000-000000000000");
 
 // from rfc4122#appendix-C
-UUID.namespace = {
+static namespace = {
     dns:  new UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8"),
     url:  new UUID("6ba7b811-9dad-11d1-80b4-00c04fd430c8"),
     oid:  new UUID("6ba7b812-9dad-11d1-80b4-00c04fd430c8"),
     x500: new UUID("6ba7b814-9dad-11d1-80b4-00c04fd430c8")
-};
+}
 
-UUID.v1 = function v1(/** @type {UUIDOptions | ((err: Error, result: UUIDLike) => void)} */ arg1, /** @type {((err: Error, result: UUIDLike) => void) | undefined} */ arg2) {
+static v1(/** @type {UUIDOptions | ((err: Error, result: UUIDLike) => void)} */ arg1, /** @type {((err: Error, result: UUIDLike) => void) | undefined} */ arg2) {
 
     /** @type {UUIDOptions} */
     var options = arg1 || {};
@@ -185,19 +186,20 @@ UUID.v1 = function v1(/** @type {UUIDOptions | ((err: Error, result: UUIDLike) =
         return uuidTimeBased(randomHost, options, callback);
     }
     return uuidTimeBased(parseMacAddress(nodeId), options, callback);
-};
+}
 
-UUID.v4 = uuidRandom;
+static v4 = uuidRandom;
 
-UUID.v4fast = uuidRandomFast;
+static v4fast = uuidRandomFast;
 
-UUID.v3 = function (/** @type {UUIDOptions | ((err: string, result: UUIDLike) => void)} */ options, /** @type {(err: string, result: UUIDLike) => void} */ callback) {
+static v3(/** @type {UUIDOptions | ((err: string, result: UUIDLike) => void)} */ options, /** @type {(err: string, result: UUIDLike) => void} */ callback) {
     return uuidNamed("md5", 0x30, options, callback);
-};
+}
 
-UUID.v5 = function (/** @type {UUIDOptions | ((err: string, result: UUIDLike) => void)} */ options, /** @type {(err: string, result: UUIDLike) => void} */ callback) {
+static v5(/** @type {UUIDOptions | ((err: string, result: UUIDLike) => void)} */ options, /** @type {(err: string, result: UUIDLike) => void} */ callback) {
     return uuidNamed("sha1", 0x50, options, callback);
-};
+}
+}
 
 /**
  * @param {string} message
