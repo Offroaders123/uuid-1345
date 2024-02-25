@@ -29,10 +29,12 @@
     "macaddress": "^0.5.1"
   },
   "devDependencies": {
+    "@types/node": "^20.11.20",
     "gulp": "^4.0.2",
     "gulp-jshint": "^2.1.0",
     "gulp-mocha": "^8.0.0",
     "jshint": "^2.11.1",
-    "node-gyp": "^9.4.0"
+    "node-gyp": "^9.4.0",
+    "typescript": "^5.3.3"
   }
 }

@@ -28,9 +28,15 @@ var lastMTime = 0;
 var lastNTime = 0;
 
 // lookup table hex to byte
+/**
+ * @type {Record<string, number>}
+ */
 var hex2byte = {};
 
 // lookup table byte to hex
+/**
+ * @type {string[]}
+ */
 var byte2hex = [];
 
 // populate lookup tables
@@ -40,7 +46,13 @@ for (var i = 0; i < 256; i++) {
     byte2hex[i] = hex;
 }
 
+/**
+ * @type {(size: number) => Buffer}
+ */
 var newBufferFromSize;
+/**
+ * @type {(buf: Buffer) => Buffer}
+ */
 var newBufferFromBuffer;
 if (Buffer.allocUnsafe) {
     // both `Buffer.allocUnsafe` and `Buffer.from` are added in
@@ -64,6 +76,9 @@ if (Buffer.allocUnsafe) {
     };
 }
 
+/**
+ * @param {string} address
+ */
 function parseMacAddress(address) {
     var buffer = newBufferFromSize(6);
     buffer[0] = hex2byte[address[0] + address[1]];
@@ -88,8 +103,16 @@ function loadMacAddress() {
   });
 }
 
+/**
+ * @typedef {{ clockSeq?: number; encoding?: "ascii" | "binary" | "object"; namespace?: string; name?: string; mac?: string | false; }} UUIDOptions
+ */
+
+/**
+ * @typedef {string | Buffer | UUID} UUIDLike
+ */
+
 // UUID class
-var UUID = function (uuid) {
+var UUID = function (/** @type {string | Buffer} */ uuid) {
 
     var check = UUID.check(uuid);
     if (!check) {
@@ -99,12 +122,13 @@ var UUID = function (uuid) {
     this.version = check.version;
     this.variant = check.variant;
 
-    this[check.format] = uuid;
+    this[check.format] = /** @type {string & Buffer} */ (uuid);
 };
 
 UUID.prototype.toString = function () {
     if (!this.ascii) {
-        this.ascii = UUID.stringify(this.binary);
+        var ascii = UUID.stringify(this.binary);
+        this.ascii = ascii;
     }
     return this.ascii;
 };
@@ -120,6 +144,10 @@ UUID.prototype.inspect = function () {
     return "UUID v" + this.version + " " + this.toString();
 };
 
+/**
+ * @param {string} message
+ * @param {(err: string, result: null) => void} callback
+ */
 function error(message, callback) {
     if (callback) {
         callback(message, null);
@@ -129,6 +157,9 @@ function error(message, callback) {
 }
 
 // read stringified uuid into a Buffer
+/**
+ * @param {string} string
+ */
 function parse(string) {
 
     var buffer = newBufferFromSize(16);
@@ -144,6 +175,9 @@ function parse(string) {
 }
 
 // according to rfc4122#section-4.1.1
+/**
+ * @param {number} bits
+ */
 function getVariant(bits) {
     switch (bits) {
         case 0: case 1: case 3:
@@ -157,6 +191,11 @@ function getVariant(bits) {
     }
 }
 
+/**
+ * @param {UUIDLike} uuid
+ * @param {number} [offset]
+ * @returns {false | { version?: number; variant: "nil" | "ncs" | "rfc4122" | "microsoft" | "future"; format: "ascii" | "binary"; }}
+ */
 function check(uuid, offset) {
 
     if (typeof uuid === "string") {
@@ -202,6 +241,11 @@ function check(uuid, offset) {
 }
 
 // v1
+/**
+ * @param {Buffer} nodeId
+ * @param {UUIDOptions} options
+ * @param {(err: Error | null, result: UUIDLike) => void} callback
+ */
 function uuidTimeBased(nodeId, options, callback) {
 
     var mTime = Date.now();
@@ -243,6 +287,9 @@ function uuidTimeBased(nodeId, options, callback) {
     buffer[8] = myClockSeq >>> 8;
     buffer[9] = myClockSeq & 0xff;
 
+    /**
+     * @type {UUIDLike}
+     */
     var result;
     switch (options.encoding && options.encoding[0]) {
         case "b":
@@ -285,11 +332,19 @@ function uuidTimeBased(nodeId, options, callback) {
 }
 
 // v3 + v5
+/**
+ * @param {string} hashFunc
+ * @param {number} version
+ * @param {UUIDOptions | ((err: string, result: UUIDLike) => void)} arg1
+ * @param {(err: string, result: UUIDLike) => void} [arg2]
+ */
 function uuidNamed(hashFunc, version, arg1, arg2) {
 
+    /** @type {UUIDOptions} */
     var options = arg1 || {};
     var callback = typeof arg1 === "function" ? arg1 : arg2;
 
+    /** @type {string | Buffer} */
     var namespace = options.namespace;
     var name = options.name;
 
@@ -316,6 +371,9 @@ function uuidNamed(hashFunc, version, arg1, arg2) {
 
     var buffer = hash.digest();
 
+    /**
+     * @type {UUIDLike}
+     */
     var result;
     switch (options.encoding && options.encoding[0]) {
         case "b":
@@ -353,8 +411,13 @@ function uuidNamed(hashFunc, version, arg1, arg2) {
 }
 
 // v4
+/**
+ * @param {UUIDOptions | ((err: string, result: UUIDLike) => void)} arg1
+ * @param {(err: string, result: UUIDLike) => void} [arg2]
+ */
 function uuidRandom(arg1, arg2) {
 
+    /** @type {UUIDOptions} */
     var options = arg1 || {};
     var callback = typeof arg1 === "function" ? arg1 : arg2;
 
@@ -363,6 +426,9 @@ function uuidRandom(arg1, arg2) {
     buffer[6] = (buffer[6] & 0x0f) | 0x40;
     buffer[8] = (buffer[8] & 0x3f) | 0x80;
 
+    /**
+     * @type {UUIDLike}
+     */
     var result;
     switch (options.encoding && options.encoding[0]) {
         case "b":
@@ -421,6 +487,9 @@ function uuidRandomFast() {
            byte2hex[ r4 >>> 24 & 0xff];
 }
 
+/**
+ * @param {Buffer} buffer
+ */
 function stringify(buffer) {
     return byte2hex[buffer[0]]  + byte2hex[buffer[1]]  +
            byte2hex[buffer[2]]  + byte2hex[buffer[3]]  + "-" +
@@ -449,8 +518,9 @@ UUID.namespace = {
     x500: new UUID("6ba7b814-9dad-11d1-80b4-00c04fd430c8")
 };
 
-UUID.v1 = function v1(arg1, arg2) {
+UUID.v1 = function v1(/** @type {UUIDOptions | ((err: Error, result: UUIDLike) => void)} */ arg1, /** @type {((err: Error, result: UUIDLike) => void) | undefined} */ arg2) {
 
+    /** @type {UUIDOptions} */
     var options = arg1 || {};
     var callback = typeof arg1 === "function" ? arg1 : arg2;
 
@@ -478,11 +548,11 @@ UUID.v4 = uuidRandom;
 
 UUID.v4fast = uuidRandomFast;
 
-UUID.v3 = function (options, callback) {
+UUID.v3 = function (/** @type {UUIDOptions | ((err: string, result: UUIDLike) => void)} */ options, /** @type {(err: string, result: UUIDLike) => void} */ callback) {
     return uuidNamed("md5", 0x30, options, callback);
 };
 
-UUID.v5 = function (options, callback) {
+UUID.v5 = function (/** @type {UUIDOptions | ((err: string, result: UUIDLike) => void)} */ options, /** @type {(err: string, result: UUIDLike) => void} */ callback) {
     return uuidNamed("sha1", 0x50, options, callback);
 };
 

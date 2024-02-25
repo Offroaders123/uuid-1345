@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "module": "CommonJS",
+    "target": "ESNext",
+    "isolatedModules": true,
+    "noEmit": true,
+    // "declaration": true,
+    // "sourceMap": true,
+    "strict": true,
+    "strictNullChecks": false, // temp
+    // "noImplicitOverride": true,
+    // "noPropertyAccessFromIndexSignature": true,
+    // "noUncheckedIndexedAccess": true,
+    // "allowUnreachableCode": false,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true
+  },
+  "include": [
+    "./index.js"
+  ]
+}
