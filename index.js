@@ -144,6 +144,61 @@ UUID.prototype.inspect = function () {
     return "UUID v" + this.version + " " + this.toString();
 };
 
+UUID.stringify = stringify;
+
+UUID.parse = parse;
+
+UUID.check = check;
+
+// according to rfc4122#section-4.1.7
+UUID.nil = new UUID("00000000-0000-0000-0000-000000000000");
+
+// from rfc4122#appendix-C
+UUID.namespace = {
+    dns:  new UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8"),
+    url:  new UUID("6ba7b811-9dad-11d1-80b4-00c04fd430c8"),
+    oid:  new UUID("6ba7b812-9dad-11d1-80b4-00c04fd430c8"),
+    x500: new UUID("6ba7b814-9dad-11d1-80b4-00c04fd430c8")
+};
+
+UUID.v1 = function v1(/** @type {UUIDOptions | ((err: Error, result: UUIDLike) => void)} */ arg1, /** @type {((err: Error, result: UUIDLike) => void) | undefined} */ arg2) {
+
+    /** @type {UUIDOptions} */
+    var options = arg1 || {};
+    var callback = typeof arg1 === "function" ? arg1 : arg2;
+
+    var nodeId = options.mac;
+
+    if (nodeId === undefined) {
+        if(!macAddressLoaded) {
+            loadMacAddress();
+        }
+        if (!macAddressLoaded && callback) {
+            setImmediate(function () {
+                UUID.v1(options, callback);
+            });
+            return;
+        }
+        return uuidTimeBased(macAddress, options, callback);
+    }
+    if (nodeId === false) {
+        return uuidTimeBased(randomHost, options, callback);
+    }
+    return uuidTimeBased(parseMacAddress(nodeId), options, callback);
+};
+
+UUID.v4 = uuidRandom;
+
+UUID.v4fast = uuidRandomFast;
+
+UUID.v3 = function (/** @type {UUIDOptions | ((err: string, result: UUIDLike) => void)} */ options, /** @type {(err: string, result: UUIDLike) => void} */ callback) {
+    return uuidNamed("md5", 0x30, options, callback);
+};
+
+UUID.v5 = function (/** @type {UUIDOptions | ((err: string, result: UUIDLike) => void)} */ options, /** @type {(err: string, result: UUIDLike) => void} */ callback) {
+    return uuidNamed("sha1", 0x50, options, callback);
+};
+
 /**
  * @param {string} message
  * @param {(err: string, result: null) => void} callback
@@ -500,60 +555,5 @@ function stringify(buffer) {
            byte2hex[buffer[12]] + byte2hex[buffer[13]] +
            byte2hex[buffer[14]] + byte2hex[buffer[15]];
 }
-
-UUID.stringify = stringify;
-
-UUID.parse = parse;
-
-UUID.check = check;
-
-// according to rfc4122#section-4.1.7
-UUID.nil = new UUID("00000000-0000-0000-0000-000000000000");
-
-// from rfc4122#appendix-C
-UUID.namespace = {
-    dns:  new UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8"),
-    url:  new UUID("6ba7b811-9dad-11d1-80b4-00c04fd430c8"),
-    oid:  new UUID("6ba7b812-9dad-11d1-80b4-00c04fd430c8"),
-    x500: new UUID("6ba7b814-9dad-11d1-80b4-00c04fd430c8")
-};
-
-UUID.v1 = function v1(/** @type {UUIDOptions | ((err: Error, result: UUIDLike) => void)} */ arg1, /** @type {((err: Error, result: UUIDLike) => void) | undefined} */ arg2) {
-
-    /** @type {UUIDOptions} */
-    var options = arg1 || {};
-    var callback = typeof arg1 === "function" ? arg1 : arg2;
-
-    var nodeId = options.mac;
-
-    if (nodeId === undefined) {
-        if(!macAddressLoaded) {
-            loadMacAddress();
-        }
-        if (!macAddressLoaded && callback) {
-            setImmediate(function () {
-                UUID.v1(options, callback);
-            });
-            return;
-        }
-        return uuidTimeBased(macAddress, options, callback);
-    }
-    if (nodeId === false) {
-        return uuidTimeBased(randomHost, options, callback);
-    }
-    return uuidTimeBased(parseMacAddress(nodeId), options, callback);
-};
-
-UUID.v4 = uuidRandom;
-
-UUID.v4fast = uuidRandomFast;
-
-UUID.v3 = function (/** @type {UUIDOptions | ((err: string, result: UUIDLike) => void)} */ options, /** @type {(err: string, result: UUIDLike) => void} */ callback) {
-    return uuidNamed("md5", 0x30, options, callback);
-};
-
-UUID.v5 = function (/** @type {UUIDOptions | ((err: string, result: UUIDLike) => void)} */ options, /** @type {(err: string, result: UUIDLike) => void} */ callback) {
-    return uuidNamed("sha1", 0x50, options, callback);
-};
 
 module.exports = UUID;
