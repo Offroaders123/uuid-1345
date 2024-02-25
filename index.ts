@@ -94,6 +94,8 @@ type UUIDOptions = { clockSeq?: number; encoding?: "ascii" | "binary" | "object"
 
 type UUIDLike = string | Buffer | UUID;
 
+type UUIDCallback = (err: string, result: UUIDLike) => void;
+
 // UUID class
 class UUID {
 version: number;
@@ -150,7 +152,7 @@ static namespace = {
     x500: new UUID("6ba7b814-9dad-11d1-80b4-00c04fd430c8")
 }
 
-static v1(arg1: UUIDOptions | ((err: Error, result: UUIDLike) => void), arg2?: ((err: Error, result: UUIDLike) => void)) {
+static v1(arg1: UUIDOptions | UUIDCallback, arg2?: UUIDCallback) {
 
     var options: UUIDOptions = arg1 || {};
     var callback = typeof arg1 === "function" ? arg1 : arg2;
@@ -179,11 +181,11 @@ static v4 = uuidRandom;
 
 static v4fast = uuidRandomFast;
 
-static v3(options: UUIDOptions | ((err: string, result: UUIDLike) => void), callback: (err: string, result: UUIDLike) => void) {
+static v3(options: UUIDOptions | UUIDCallback, callback: UUIDCallback) {
     return uuidNamed("md5", 0x30, options, callback);
 }
 
-static v5(options: UUIDOptions | ((err: string, result: UUIDLike) => void), callback: (err: string, result: UUIDLike) => void) {
+static v5(options: UUIDOptions | UUIDCallback, callback: UUIDCallback) {
     return uuidNamed("sha1", 0x50, options, callback);
 }
 }
@@ -272,7 +274,7 @@ function check(uuid: UUIDLike, offset?: number): false | Check {
 }
 
 // v1
-function uuidTimeBased(nodeId: Buffer, options: UUIDOptions, callback: (err: Error | null, result: UUIDLike) => void) {
+function uuidTimeBased(nodeId: Buffer, options: UUIDOptions, callback: UUIDCallback) {
 
     var mTime = Date.now();
     var nTime = lastNTime + 1;
@@ -355,7 +357,7 @@ function uuidTimeBased(nodeId: Buffer, options: UUIDOptions, callback: (err: Err
 }
 
 // v3 + v5
-function uuidNamed(hashFunc: string, version: number, arg1: UUIDOptions | ((err: string, result: UUIDLike) => void), arg2?: (err: string, result: UUIDLike) => void) {
+function uuidNamed(hashFunc: string, version: number, arg1: UUIDOptions | UUIDCallback, arg2?: UUIDCallback) {
 
     var options: UUIDOptions = arg1 || {};
     var callback = typeof arg1 === "function" ? arg1 : arg2;
@@ -423,7 +425,7 @@ function uuidNamed(hashFunc: string, version: number, arg1: UUIDOptions | ((err:
 }
 
 // v4
-function uuidRandom(arg1: UUIDOptions | ((err: string, result: UUIDLike) => void), arg2?: (err: string, result: UUIDLike) => void) {
+function uuidRandom(arg1: UUIDOptions | UUIDCallback, arg2?: UUIDCallback) {
 
     var options: UUIDOptions = arg1 || {};
     var callback = typeof arg1 === "function" ? arg1 : arg2;
