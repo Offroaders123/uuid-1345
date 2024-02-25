@@ -1,4 +1,4 @@
-var UUID = require('../index');
+var UUID = require('../dist/index');
 
 setTimeout(function () {
 

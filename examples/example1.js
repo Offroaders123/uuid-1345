@@ -1,4 +1,4 @@
-var UUID = require('../index');
+var UUID = require('../dist/index');
 
 console.log("Generated a fast v4 UUID:\n\t%s\n", UUID.v4fast());
 

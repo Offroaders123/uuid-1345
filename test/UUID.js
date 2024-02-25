@@ -1,5 +1,5 @@
 var assert = require('assert');
-var UUID = require("../index");
+var UUID = require("../dist/index");
 
 var sample = '730433f1-7c3e-3939-a0c4-9c066e699799';
 

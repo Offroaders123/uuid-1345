@@ -1,5 +1,5 @@
 var assert = require('assert');
-var UUID = require("../index");
+var UUID = require("../dist/index");
 
 describe("UUID.v5", function () {
 

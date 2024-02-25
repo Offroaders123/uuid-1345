@@ -1,3 +1,5 @@
+/* jshint node: true */
+
 var crypto = require("crypto");
 
 // error codes

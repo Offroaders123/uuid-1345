@@ -7,7 +7,7 @@ const jshint = require('gulp-jshint');
 const mocha = require('gulp-mocha');
 
 function hint() {
-  return src(['index.js', 'test/*.js'])
+  return src(['dist/index.js', 'test/*.js'])
     .pipe(jshint())
     .pipe(jshint.reporter('default'))
     .pipe(jshint.reporter('fail'));

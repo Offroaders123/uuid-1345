@@ -1,7 +1,5 @@
 {
   "compilerOptions": {
-    "allowJs": true,
-    "checkJs": true,
     "outDir": "./dist",
     "module": "CommonJS",
     "target": "ES5",
@@ -19,6 +17,6 @@
     // "noUnusedParameters": true
   },
   "include": [
-    "./index.js"
+    "./index.ts"
   ]
 }
