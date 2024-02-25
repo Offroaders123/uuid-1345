@@ -66,7 +66,7 @@ if (Buffer.allocUnsafe) {
     };
 }
 
-function parseMacAddress(address: string) {
+function parseMacAddress(address: string): Buffer {
     var buffer = newBufferFromSize(6);
     buffer[0] = hex2byte[address[0]! + address[1]!]!;
     buffer[1] = hex2byte[address[3]! + address[4]!]!;
@@ -81,7 +81,7 @@ function parseMacAddress(address: string) {
 var macAddress = randomHost;
 var macAddressLoaded = false;
 
-function loadMacAddress() {
+function loadMacAddress(): void {
   (require("macaddress") as typeof import("macaddress")).one(function (err, result) {
       if (!err) {
           macAddress = parseMacAddress(result);
@@ -116,7 +116,7 @@ constructor(uuid: string | Buffer) {
     this[check.format] = uuid as string & Buffer;
 }
 
-toString() {
+toString(): string {
     if (!this.ascii) {
         var ascii = UUID.stringify(this.binary!);
         this.ascii = ascii;
@@ -124,14 +124,14 @@ toString() {
     return this.ascii;
 }
 
-toBuffer() {
+toBuffer(): Buffer {
     if (!this.binary) {
         this.binary = UUID.parse(this.ascii!);
     }
     return newBufferFromBuffer(this.binary);
 }
 
-inspect() {
+inspect(): string {
     return "UUID v" + this.version + " " + this.toString();
 }
 
@@ -150,7 +150,7 @@ static namespace = {
     url:  new UUID("6ba7b811-9dad-11d1-80b4-00c04fd430c8"),
     oid:  new UUID("6ba7b812-9dad-11d1-80b4-00c04fd430c8"),
     x500: new UUID("6ba7b814-9dad-11d1-80b4-00c04fd430c8")
-}
+} as const;
 
 static v1(arg1: UUIDOptions): UUIDLike;
 static v1(arg1: UUIDOptions, arg2?: UUIDCallback): void;
@@ -196,7 +196,7 @@ static v5(options: UUIDOptions, callback?: UUIDCallback): void | UUIDLike {
 }
 }
 
-function error(message: string, callback?: UUIDCallback) {
+function error(message: string, callback?: UUIDCallback): void {
     if (callback) {
         callback(message, null);
     } else {
@@ -205,7 +205,7 @@ function error(message: string, callback?: UUIDCallback) {
 }
 
 // read stringified uuid into a Buffer
-function parse(string: string) {
+function parse(string: string): Buffer {
 
     var buffer = newBufferFromSize(16);
     var j = 0;
@@ -220,7 +220,7 @@ function parse(string: string) {
 }
 
 // according to rfc4122#section-4.1.1
-function getVariant(bits: number) {
+function getVariant(bits: number): "ncs" | "rfc4122" | "microsoft" | "future" {
     switch (bits) {
         case 0: case 1: case 3:
             return "ncs";
@@ -278,7 +278,7 @@ function check(uuid: string | Buffer, offset?: number): false | Check {
 }
 
 // v1
-function uuidTimeBased(nodeId: Buffer, options: UUIDOptions, callback?: UUIDCallback) {
+function uuidTimeBased(nodeId: Buffer, options: UUIDOptions, callback?: UUIDCallback): UUIDLike {
 
     var mTime = Date.now();
     var nTime = lastNTime + 1;
@@ -476,7 +476,7 @@ function uuidRandom(arg1: UUIDOptions, arg2?: UUIDCallback): UUIDLike | void {
 }
 
 // v4 fast
-function uuidRandomFast() {
+function uuidRandomFast(): string {
 
     var r1 = Math.random() * 0x100000000;
     var r2 = Math.random() * 0x100000000;
@@ -501,7 +501,7 @@ function uuidRandomFast() {
            byte2hex[ r4 >>> 24 & 0xff]!;
 }
 
-function stringify(buffer: Buffer) {
+function stringify(buffer: Buffer): string {
     return byte2hex[buffer[0]!]!  + byte2hex[buffer[1]!]!  +
            byte2hex[buffer[2]!]!  + byte2hex[buffer[3]!]!  + "-" +
            byte2hex[buffer[4]!]!  + byte2hex[buffer[5]!]!  + "-" +
