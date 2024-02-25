@@ -1,6 +1,6 @@
 /* jshint node: true */
 
-var crypto = require("crypto");
+import crypto = require("crypto");
 
 // error codes
 var invalidNamespace =
@@ -30,16 +30,10 @@ var lastMTime = 0;
 var lastNTime = 0;
 
 // lookup table hex to byte
-/**
- * @type {Record<string, number>}
- */
-var hex2byte = {};
+var hex2byte: Record<string, number> = {};
 
 // lookup table byte to hex
-/**
- * @type {string[]}
- */
-var byte2hex = [];
+var byte2hex: string[] = [];
 
 // populate lookup tables
 for (var i = 0; i < 256; i++) {
@@ -48,14 +42,8 @@ for (var i = 0; i < 256; i++) {
     byte2hex[i] = hex;
 }
 
-/**
- * @type {(size: number) => Buffer}
- */
-var newBufferFromSize;
-/**
- * @type {(buf: Buffer) => Buffer}
- */
-var newBufferFromBuffer;
+var newBufferFromSize: (size: number) => Buffer;
+var newBufferFromBuffer: (buf: Buffer) => Buffer;
 if (Buffer.allocUnsafe) {
     // both `Buffer.allocUnsafe` and `Buffer.from` are added in
     // Node.js v5.10.0
@@ -78,10 +66,7 @@ if (Buffer.allocUnsafe) {
     };
 }
 
-/**
- * @param {string} address
- */
-function parseMacAddress(address) {
+function parseMacAddress(address: string) {
     var buffer = newBufferFromSize(6);
     buffer[0] = hex2byte[address[0] + address[1]];
     buffer[1] = hex2byte[address[3] + address[4]];
@@ -97,7 +82,7 @@ var macAddress = randomHost;
 var macAddressLoaded = false;
 
 function loadMacAddress() {
-  require("macaddress").one(function (err, result) {
+  (require("macaddress") as typeof import("macaddress")).one(function (err, result) {
       if (!err) {
           macAddress = parseMacAddress(result);
       }
@@ -105,17 +90,18 @@ function loadMacAddress() {
   });
 }
 
-/**
- * @typedef {{ clockSeq?: number; encoding?: "ascii" | "binary" | "object"; namespace?: string; name?: string; mac?: string | false; }} UUIDOptions
- */
+type UUIDOptions = { clockSeq?: number; encoding?: "ascii" | "binary" | "object"; namespace?: string; name?: string; mac?: string | false; };
 
-/**
- * @typedef {string | Buffer | UUID} UUIDLike
- */
+type UUIDLike = string | Buffer | UUID;
 
 // UUID class
 class UUID {
-constructor(/** @type {string | Buffer} */ uuid) {
+version: number;
+variant: Check["variant"];
+ascii?: string;
+binary?: Buffer;
+
+constructor(uuid: string | Buffer) {
 
     var check = UUID.check(uuid);
     if (!check) {
@@ -125,7 +111,7 @@ constructor(/** @type {string | Buffer} */ uuid) {
     this.version = check.version;
     this.variant = check.variant;
 
-    this[check.format] = /** @type {string & Buffer} */ (uuid);
+    this[check.format] = uuid as string & Buffer;
 }
 
 toString() {
@@ -164,10 +150,9 @@ static namespace = {
     x500: new UUID("6ba7b814-9dad-11d1-80b4-00c04fd430c8")
 }
 
-static v1(/** @type {UUIDOptions | ((err: Error, result: UUIDLike) => void)} */ arg1, /** @type {((err: Error, result: UUIDLike) => void) | undefined} */ arg2) {
+static v1(arg1: UUIDOptions | ((err: Error, result: UUIDLike) => void), arg2?: ((err: Error, result: UUIDLike) => void)) {
 
-    /** @type {UUIDOptions} */
-    var options = arg1 || {};
+    var options: UUIDOptions = arg1 || {};
     var callback = typeof arg1 === "function" ? arg1 : arg2;
 
     var nodeId = options.mac;
@@ -194,20 +179,16 @@ static v4 = uuidRandom;
 
 static v4fast = uuidRandomFast;
 
-static v3(/** @type {UUIDOptions | ((err: string, result: UUIDLike) => void)} */ options, /** @type {(err: string, result: UUIDLike) => void} */ callback) {
+static v3(options: UUIDOptions | ((err: string, result: UUIDLike) => void), callback: (err: string, result: UUIDLike) => void) {
     return uuidNamed("md5", 0x30, options, callback);
 }
 
-static v5(/** @type {UUIDOptions | ((err: string, result: UUIDLike) => void)} */ options, /** @type {(err: string, result: UUIDLike) => void} */ callback) {
+static v5(options: UUIDOptions | ((err: string, result: UUIDLike) => void), callback: (err: string, result: UUIDLike) => void) {
     return uuidNamed("sha1", 0x50, options, callback);
 }
 }
 
-/**
- * @param {string} message
- * @param {(err: string, result: null) => void} callback
- */
-function error(message, callback) {
+function error(message: string, callback: (err: string, result: null) => void) {
     if (callback) {
         callback(message, null);
     } else {
@@ -216,10 +197,7 @@ function error(message, callback) {
 }
 
 // read stringified uuid into a Buffer
-/**
- * @param {string} string
- */
-function parse(string) {
+function parse(string: string) {
 
     var buffer = newBufferFromSize(16);
     var j = 0;
@@ -234,10 +212,7 @@ function parse(string) {
 }
 
 // according to rfc4122#section-4.1.1
-/**
- * @param {number} bits
- */
-function getVariant(bits) {
+function getVariant(bits: number) {
     switch (bits) {
         case 0: case 1: case 3:
             return "ncs";
@@ -250,12 +225,9 @@ function getVariant(bits) {
     }
 }
 
-/**
- * @param {UUIDLike} uuid
- * @param {number} [offset]
- * @returns {false | { version?: number; variant: "nil" | "ncs" | "rfc4122" | "microsoft" | "future"; format: "ascii" | "binary"; }}
- */
-function check(uuid, offset) {
+type Check = { version?: number; variant: "nil" | "ncs" | "rfc4122" | "microsoft" | "future"; format: "ascii" | "binary"; };
+
+function check(uuid: UUIDLike, offset?: number): false | Check {
 
     if (typeof uuid === "string") {
         uuid = uuid.toLowerCase();
@@ -300,12 +272,7 @@ function check(uuid, offset) {
 }
 
 // v1
-/**
- * @param {Buffer} nodeId
- * @param {UUIDOptions} options
- * @param {(err: Error | null, result: UUIDLike) => void} callback
- */
-function uuidTimeBased(nodeId, options, callback) {
+function uuidTimeBased(nodeId: Buffer, options: UUIDOptions, callback: (err: Error | null, result: UUIDLike) => void) {
 
     var mTime = Date.now();
     var nTime = lastNTime + 1;
@@ -346,10 +313,7 @@ function uuidTimeBased(nodeId, options, callback) {
     buffer[8] = myClockSeq >>> 8;
     buffer[9] = myClockSeq & 0xff;
 
-    /**
-     * @type {UUIDLike}
-     */
-    var result;
+    var result: UUIDLike;
     switch (options.encoding && options.encoding[0]) {
         case "b":
         case "B":
@@ -391,20 +355,12 @@ function uuidTimeBased(nodeId, options, callback) {
 }
 
 // v3 + v5
-/**
- * @param {string} hashFunc
- * @param {number} version
- * @param {UUIDOptions | ((err: string, result: UUIDLike) => void)} arg1
- * @param {(err: string, result: UUIDLike) => void} [arg2]
- */
-function uuidNamed(hashFunc, version, arg1, arg2) {
+function uuidNamed(hashFunc: string, version: number, arg1: UUIDOptions | ((err: string, result: UUIDLike) => void), arg2?: (err: string, result: UUIDLike) => void) {
 
-    /** @type {UUIDOptions} */
-    var options = arg1 || {};
+    var options: UUIDOptions = arg1 || {};
     var callback = typeof arg1 === "function" ? arg1 : arg2;
 
-    /** @type {string | Buffer} */
-    var namespace = options.namespace;
+    var namespace: string | Buffer = options.namespace;
     var name = options.name;
 
     var hash = crypto.createHash(hashFunc);
@@ -430,10 +386,7 @@ function uuidNamed(hashFunc, version, arg1, arg2) {
 
     var buffer = hash.digest();
 
-    /**
-     * @type {UUIDLike}
-     */
-    var result;
+    var result: UUIDLike;
     switch (options.encoding && options.encoding[0]) {
         case "b":
         case "B":
@@ -470,14 +423,9 @@ function uuidNamed(hashFunc, version, arg1, arg2) {
 }
 
 // v4
-/**
- * @param {UUIDOptions | ((err: string, result: UUIDLike) => void)} arg1
- * @param {(err: string, result: UUIDLike) => void} [arg2]
- */
-function uuidRandom(arg1, arg2) {
+function uuidRandom(arg1: UUIDOptions | ((err: string, result: UUIDLike) => void), arg2?: (err: string, result: UUIDLike) => void) {
 
-    /** @type {UUIDOptions} */
-    var options = arg1 || {};
+    var options: UUIDOptions = arg1 || {};
     var callback = typeof arg1 === "function" ? arg1 : arg2;
 
     var buffer = crypto.randomBytes(16);
@@ -485,10 +433,7 @@ function uuidRandom(arg1, arg2) {
     buffer[6] = (buffer[6] & 0x0f) | 0x40;
     buffer[8] = (buffer[8] & 0x3f) | 0x80;
 
-    /**
-     * @type {UUIDLike}
-     */
-    var result;
+    var result: UUIDLike;
     switch (options.encoding && options.encoding[0]) {
         case "b":
         case "B":
@@ -546,10 +491,7 @@ function uuidRandomFast() {
            byte2hex[ r4 >>> 24 & 0xff];
 }
 
-/**
- * @param {Buffer} buffer
- */
-function stringify(buffer) {
+function stringify(buffer: Buffer) {
     return byte2hex[buffer[0]]  + byte2hex[buffer[1]]  +
            byte2hex[buffer[2]]  + byte2hex[buffer[3]]  + "-" +
            byte2hex[buffer[4]]  + byte2hex[buffer[5]]  + "-" +
@@ -560,4 +502,4 @@ function stringify(buffer) {
            byte2hex[buffer[14]] + byte2hex[buffer[15]];
 }
 
-module.exports = UUID;
+export = UUID;
